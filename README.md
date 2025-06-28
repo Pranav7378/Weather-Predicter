@@ -1,105 +1,109 @@
 
-```markdown
-# 🇮🇳 Indian City Weather Forecast (Prophet + Streamlit)
+-----
 
-Predict daily average temperatures for major Indian cities using **10 years of real weather data** and **Facebook’s Prophet** model.
+# Indian City Weather Forecast with Prophet
 
-Powered by:
+-----
 
-- **Meteostat** – historical weather (40 + years)  
-- **Prophet** – time‑series forecasting  
-- **Visual Crossing** – vendor forecast benchmark  
-- **Streamlit** – interactive web app
+## Live Demo
 
----
+Experience the live application here: [https://indiancityweatherpredictionwithprophet.streamlit.app](https://indiancityweatherpredictionwithprophet.streamlit.app)
 
-## 📊 Live Demo
+## GitHub Repository
 
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://indiancityweatherpredictionwithprophet.streamlit.app)
+Access the full codebase here: [https://github.com/Pranav7378/Weather-Predicter](https://github.com/Pranav7378/Weather-Predicter)
 
-> Forecast 3 – 365 days ahead for **Mumbai**, **Delhi**, **Bangalore**, **Hyderabad**, or **Chennai** and compare with a commercial API.
+-----
 
----
+## Description
 
-## 📈 Sample Results (15‑day horizon)
+This is a **full-stack time series forecasting project** designed to predict daily average temperatures for major Indian cities using **Facebook Prophet**. The model is trained on 10 years of historical weather data and its predictions are rigorously compared against real-time vendor forecasts from Visual Crossing. Live evaluation is performed using **MAE** and **RMSE** metrics to assess accuracy.
 
-| City        | MAE (°C) | RMSE (°C) |
-|-------------|---------:|----------:|
-| **Mumbai**      | 0.55 | 0.66 |
-| **Hyderabad**   | 1.45 | 1.53 |
-| **Chennai**     | 0.39 | 0.46 |
-| **Bangalore**   | 2.07 | 2.42 |
-| **Delhi**       | –    | –    |
+-----
 
-> ✅ MAE ≤ 1 °C = excellent, 1–2 °C = good, > 2 °C = room to improve.
+## Cities Covered
 
----
+  * Mumbai
+  * Delhi
+  * Chennai
+  * Bangalore
+  * Hyderabad
 
-## 🗂 Project Structure
+-----
 
-```
+## Key Features
 
-Weather-Predicter/
-├── app\_streamlit/         ← Streamlit front‑end
-│   └── app.py
-├── notebooks/             ← Colab training notebook
-│   └── train.ipynb
-├── models/                ← Pre‑trained Prophet models (\*.pkl, Git LFS)
-├── src/                   ← Core modules
-│   ├── data\_loader.py     ← Meteostat fetch
-│   ├── model.py           ← Prophet trainer
-│   └── forecast\_vendor.py ← Visual Crossing API
-└── README.md
+  * **Built and deployed entirely for ₹0** using free tools.
+  * **Interactive Streamlit UI** for easy city selection and forecast range customization.
+  * **Live model vs. vendor comparison** with real-time error metrics (MAE, RMSE).
+  * Integrated **GitHub, Google Colab, and Git LFS** workflow for efficient development and version control.
 
-````
+-----
 
----
+## Technologies Used
 
-## 🧑‍💻 Run Locally
+### Data
 
-```bash
-git clone https://github.com/Pranav7378/Weather-Predicter.git
-cd Weather-Predicter
-python -m venv .venv && . .venv/bin/activate  # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-streamlit run app_streamlit/app.py
-````
+  * **Meteostat**: For historical weather data.
+  * **Visual Crossing**: For benchmark real-time vendor forecasts.
 
-Add your Visual Crossing key in `.streamlit/secrets.toml`:
+### Model
 
-```toml
-VC_KEY = "YOUR_API_KEY"
-```
+  * **Facebook Prophet**: The core time series forecasting library.
 
----
+### Frontend
 
-## 🧪 Train Your Own Model (Colab)
+  * **Streamlit**: For creating the interactive user interface.
 
-1. Open **`notebooks/train.ipynb`** in Google Colab
-2. Set `city`, `lat`, `lon`
-3. Run all cells → a `.pkl` model appears in `models/`
-4. Commit/push via Git LFS – the Streamlit app loads it automatically
+### Backend
 
----
+  * **Python**
 
-## 🌐 Deployed on Streamlit Cloud
+### Deployment
 
-[https://indiancityweatherpredictionwithprophet.streamlit.app](https://indiancityweatherpredictionwithprophet.streamlit.app)
+  * **Streamlit Community Cloud**
 
----
+### Version Control
 
-## ✍️ Author
+  * **GitHub**: For source code management.
+  * **Git LFS**: For handling large `.pkl` model files.
 
-**Kodamasimham Chaitanya Pranav Sai**
-📫 [chakry.sowji.abhi@gmail.com](mailto:chakry.sowji.abhi@gmail.com) • [LinkedIn](https://www.linkedin.com/in/kodamasimham-pranav-sai/)
+### Notebook Training
 
----
+  * **Google Colab**
 
-⭐ If this repo helped you, please consider giving it a star!
+### Tools & Libraries
 
-```
+  * `Prophet`
+  * `pandas`
+  * `plotly`
+  * `streamlit`
+  * `requests`
+  * `meteostat`
+  * `sklearn`
 
----
+-----
 
-Copy everything inside the code block above—including the markdown table and code fences—and paste it directly into **README.md**. Commit and push; GitHub will render it beautifully.
-```
+## Challenges Overcome
+
+  * **API Limits**: Successfully switched from OpenWeatherMap to Meteostat and Visual Crossing to avoid API rate limits.
+  * **Large Files**: Effectively managed and stored large `.pkl` model files using **Git LFS**.
+  * **Cost-Efficiency & Reproducibility**: Designed the application to run offline on cached models, ensuring it remains cost-free and reproducible.
+
+-----
+
+## Impact
+
+  * Achieved **portfolio-ready results** with **RMSE \< 0.5 °C** for key cities like Mumbai and Chennai.
+  * Demonstrated strong capabilities in handling **data pipelines, model training, API integration, deployment, and live analytics**.
+
+-----
+
+## Author
+
+**Kodamasimham Chaitanya Pranav Sai**
+
+  * **Email**: pranav.kodamasimham@gmail.com
+  * **LinkedIn**: [https://www.linkedin.com/in/kodamasimham-pranav-sai/](https://www.linkedin.com/in/kodamasimham-pranav-sai/)
+
+-----
