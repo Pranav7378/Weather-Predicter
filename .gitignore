@@ -1,0 +1,36 @@
+# ── Python runtime ──────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+
+# ── Virtual‑envs ────────────────────────────────────────────────
+.venv/
+env/
+venv/
+# (Works for Windows, macOS, Linux venv naming)
+
+# ── IDE & editor files ──────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# ── Environment / secrets ──────────────────────────────────────
+.env
+.streamlit/secrets.toml
+
+# ── Model & data artefacts ─────────────────────────────────────
+models/*.pkl
+models/*.joblib
+data/
+*.csv
+*.parquet
+*.feather
+
+# ── Jupyter / Colab checkpoints ────────────────────────────────
+.ipynb_checkpoints/
+
+# ── Logs & misc ────────────────────────────────────────────────
+*.log
+*.bak

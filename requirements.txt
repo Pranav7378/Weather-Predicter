@@ -1,0 +1,8 @@
+prophet>=1.1          # Facebook Prophet fork
+streamlit>=1.35
+pandas
+numpy
+requests
+plotly>=5.20
+python-dotenv         # optional: local .env support
+meteostat>=1.7
