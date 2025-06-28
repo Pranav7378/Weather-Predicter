@@ -6,3 +6,4 @@ requests
 plotly>=5.20
 python-dotenv         # optional: local .env support
 meteostat>=1.7
+scikit-learn

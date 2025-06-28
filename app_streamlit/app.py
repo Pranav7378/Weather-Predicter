@@ -1,47 +1,33 @@
-# app_streamlit/app.py
-# ────────────────────────────────────────────────────────────────
-# Streamlit demo: Time‑series weather forecast for Indian cities
-# • Historical data  →  Meteostat  (no key)
-# • ML model         →  Prophet
-# • Vendor forecast  →  Visual Crossing  (VC_KEY in secrets)
-# • UI styling       →  Gradient background via CSS
-# ────────────────────────────────────────────────────────────────
-
-# ---- Python‑path patch so we can `import src.*` ----
+# app_streamlit/app.py  ───────────────────────────────────────────
 import sys
 from pathlib import Path
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(ROOT_DIR))
 
-# ---- External imports ----
-import os, pickle, datetime as dt
+import pickle, datetime as dt, os
 import pandas as pd
 import plotly.express as px
 import streamlit as st
+from sklearn.metrics import mean_absolute_error, mean_squared_error
 
-# ---- Internal modules ----
-from src.data_loader import load_hist
-from src.model import train_prophet
 from src.forecast_vendor import get_vendor_forecast
 
-# ════════════════════════  Streamlit Config  ════════════════════════
+# ─── Streamlit page config ──────────────────────────────────────
 st.set_page_config(
-    page_title="India City Weather Forecast",
+    page_title="India Weather Forecast",
     layout="wide",
-    page_icon="📈",
+    page_icon="📈"
 )
 
-# ---- 🎨  Background CSS  (swap for an image if you like) ----
+# ─── Gradient background CSS ────────────────────────────────────
 st.markdown(
     """
     <style>
-    /* Full‑page diagonal gradient */
     .stApp {
         background: linear-gradient(135deg,#00172B 0%,#004B7A 50%,#0073A9 100%);
         background-attachment: fixed;
     }
-    /* Make sidebar slightly translucent */
     section[data-testid="stSidebar"] > div:first-child {
         backdrop-filter: blur(4px);
         background-color: rgba(0,0,0,0.35);
@@ -51,58 +37,36 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# ════════════════════════  Sidebar Controls  ════════════════════════
+# ─── Sidebar controls ───────────────────────────────────────────
 with st.sidebar:
     st.header("Controls")
     city = st.selectbox(
-        "City",
-        ["Delhi", "Mumbai", "Bangalore", "Chennai", "Hyderabad"],
+        "Choose city (pre‑trained)",
+        ["Mumbai", "Delhi", "Bangalore", "Chennai", "Hyderabad"],
         index=0,
     )
-    years_hist = st.slider("Historical years", 1, 20, 10)
-    days_forecast = st.slider("Forecast horizon (days)", 3, 365, 30)
-    retrain = st.checkbox("Force retrain", value=False)
+    years_hist = 10  # all pickles are 10‑year history
+    days_forecast = st.slider("Days to predict", 3, 365, 30)
 
-# ════════════  City → Coordinates (hard‑coded, no OW API) ═══════════
-CITY_COORDS = {
-    "Delhi": (28.6139, 77.2090),
-    "Mumbai": (19.0760, 72.8777),
-    "Bangalore": (12.9716, 77.5946),
-    "Chennai": (13.0827, 80.2707),
-    "Hyderabad": (17.3850, 78.4867),
-}
-lat, lon = CITY_COORDS[city]
+# ─── Load pre‑trained model ─────────────────────────────────────
+pkl_path = Path(f"models/prophet_{city.lower()}_{years_hist}.pkl")
+if not pkl_path.exists():
+    st.error(
+        f"No pre‑trained model found for {city}. "
+        "Train it in Colab and commit the .pkl first."
+    )
+    st.stop()
 
-# ════════════  Model caching (memory + disk)  ═══════════
-mdl_key = f"{city.lower()}_{years_hist}"
-pkl_path = Path("models") / f"prophet_{mdl_key}.pkl"
-model_cache = st.session_state.setdefault("models", {})
-model = None
 
-if not retrain:
-    model = model_cache.get(mdl_key)
-    if model is None and pkl_path.exists():
-        with open(pkl_path, "rb") as f:
-            model = pickle.load(f)
-            model_cache[mdl_key] = model
+@st.cache_resource
+def load_model(path: Path):
+    with open(path, "rb") as f:
+        return pickle.load(f)
 
-# ════════════  Train model if not cached  ═══════════
-if model is None:
-    with st.spinner(f"Downloading {years_hist} y weather for {city}…"):
-        end_date = dt.datetime.utcnow().date() - dt.timedelta(days=1)
-        start_date = end_date - dt.timedelta(days=365 * years_hist)
-        df_hist = load_hist(start_date, end_date, lat, lon)
 
-    with st.spinner("Training Prophet…"):
-        model = train_prophet(df_hist)
+model = load_model(pkl_path)
 
-    # cache for later
-    model_cache[mdl_key] = model
-    pkl_path.parent.mkdir(exist_ok=True)
-    with open(pkl_path, "wb") as f:
-        pickle.dump(model, f)
-
-# ════════════  Your model forecast  ═══════════
+# ─── Generate forecast from loaded model ────────────────────────
 future = model.make_future_dataframe(periods=days_forecast)
 df_model = (
     model.predict(future)[["ds", "yhat"]]
@@ -110,23 +74,45 @@ df_model = (
     .assign(source="Your Model")
 )
 
-# ════════════  Visual Crossing forecast  ═══════════
+# Keep only forecast dates (today onward) and limit to 15 for comparison
+today = pd.to_datetime(dt.date.today())
+df_model = df_model[df_model["dt"] >= today].head(15)
+
+# ─── Vendor forecast (Visual Crossing) ──────────────────────────
 try:
     df_vendor = get_vendor_forecast(city).assign(source="Visual Crossing")
-    df_plot = pd.concat([df_model.tail(15), df_vendor], ignore_index=True)
+    # Align on dates that exist in both
+    df_compare = df_vendor.merge(
+        df_model[["dt", "temp"]],
+        on="dt",
+        suffixes=("_vendor", "_model"),
+    )
+    # Compute error metrics if overlap exists
+    if not df_compare.empty:
+        mae = mean_absolute_error(
+            df_compare["temp_vendor"], df_compare["temp_model"]
+        )
+        rmse = mean_squared_error(df_compare["temp_vendor"], df_compare["temp_model"]) ** 0.5
+
+        st.markdown(f"📈 **MAE (Model vs Vendor):** `{mae:.2f} °C`")
+        st.markdown(f"📉 **RMSE (Model vs Vendor):** `{rmse:.2f} °C`")
+    else:
+        st.info("No overlapping dates to compute MAE/RMSE.")
+
+    df_plot = pd.concat([df_model, df_vendor], ignore_index=True)
+
 except Exception as e:
     st.warning(f"Vendor forecast unavailable → {e}")
-    df_plot = df_model.tail(15)
+    df_plot = df_model
 
-# ════════════  Plot comparison  ═══════════
-st.subheader(f"{city} – Forecast comparison")
+# ─── Plot comparison ────────────────────────────────────────────
+st.subheader(f"{city} – Forecast Comparison")
 fig = px.line(
     df_plot,
     x="dt",
     y="temp",
     color="source",
     markers=True,
-    title=None,
 )
 fig.update_layout(
     xaxis_title="Date",
@@ -135,7 +121,6 @@ fig.update_layout(
 )
 st.plotly_chart(fig, use_container_width=True)
 
-# ════════════  Footer  ═══════════
 st.caption(
     "Training data: Meteostat • Model: Prophet • Vendor forecast: Visual Crossing"
 )
