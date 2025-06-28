@@ -21,8 +21,8 @@ venv/
 .streamlit/secrets.toml
 
 # ── Model & data artefacts ─────────────────────────────────────
-models/*.pkl
-models/*.joblib
+#models/*.pkl
+#models/*.joblib
 data/
 *.csv
 *.parquet
